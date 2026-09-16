@@ -44,6 +44,34 @@ is nothing to sign and no key to leak, because there is no signing path — not 
 | **Live contract**      | Reads a deployed testnet contract over Soroban RPC: symbol, name, decimals, balance |
 | **Documentation**      | The guides and the reference, integrated rather than linked away                    |
 
+### What it looks like
+
+Every screenshot below is captured from [the deployment](https://estamora-app.vercel.app), not from
+a development server, by
+[`capture-readme-shots.mjs`](https://github.com/Estamora-Soroban-Layers/estamora-docs/blob/main/video/capture-readme-shots.mjs).
+That script waits for each view to have actually produced content — the report has to be fetched and
+validated, and the contract read has to come back over RPC — so none of these is a picture of a
+loading state.
+
+**Overview.** The claim first, stated as a boundary: this reads results, it cannot produce a
+verdict.
+
+![The Overview view](docs/screenshots/app-overview.png)
+
+**Conformance report.** The worked example, opened and audited against the published schema. 63
+checks over seven dimensions, and the reason the run is `INCONCLUSIVE` rather than `CONFORMANT`
+stated in the page itself: of the 20 vectors in the corpus, 1 executed and passed and 19 were
+skipped, because a read-only target cannot stage the authorization and the opening state they
+require.
+
+![The Conformance report view](docs/screenshots/app-conformance-report.png)
+
+**Live contract.** A real read against a deployed testnet contract, performed by simulation. The
+result is deliberately modest — a symbol, a name and a decimals count — because that is all a read
+can establish.
+
+![The Live contract view](docs/screenshots/app-live-contract.png)
+
 ## The audit, which is the interesting part
 
 Rendering a report beautifully is only useful if the report is trustworthy, and a document that
