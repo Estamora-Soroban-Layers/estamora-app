@@ -13,6 +13,25 @@ export const REPORT_SCHEMA_URL =
 /** The documentation site. */
 export const DOCS_URL = 'https://estamora-docs.vercel.app'
 
+/**
+ * The product pitch, played in the page rather than linked out to.
+ *
+ * These point at the documentation site, deliberately, and not at the release asset. A GitHub
+ * release asset is served as `content-type: application/octet-stream` with
+ * `content-disposition: attachment`, so a link to one *downloads* 15 MB instead of playing it.
+ * The site serves the same bytes as `video/mp4` with byte-range support, which is what makes
+ * an embedded player able to start before the file has finished arriving, and to seek.
+ *
+ * `PITCH_VIDEO_ARCHIVE_URL` is the immutable release asset: the archival copy, linked as a
+ * download for anyone who wants the file rather than the stream. Both are asserted by
+ * `npm run check:browser-fetchable`.
+ */
+export const PITCH_VIDEO_URL = `${DOCS_URL}/assets/estamora-pitch.mp4`
+export const PITCH_POSTER_URL = `${DOCS_URL}/assets/pitch-thumbnail.png`
+export const PITCH_VIDEO_ARCHIVE_URL =
+  'https://github.com/Estamora-Soroban-Layers/estamora-docs/releases/download/pitch-v1/estamora-pitch.mp4'
+
+/** The organization the four repositories live under. */
 export const RUNNER_REPO_URL =
   'https://github.com/Estamora-Soroban-Layers/estamora-conformance-runner'
 export const SPEC_REPO_URL = 'https://github.com/Estamora-Soroban-Layers/estamora-conformance-spec'

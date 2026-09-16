@@ -544,6 +544,30 @@ summary {
   background: var(--warn-soft);
 }
 
+/* The pitch player.
+ *
+ * `aspect-ratio` is set so the box has its final height before any video byte arrives. The
+ * alternative is a page that reflows the moment metadata loads, which pushes everything the
+ * reader was already reading down the screen.
+ */
+.pitch {
+  margin: 22px 0;
+}
+
+.pitch video {
+  display: block;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  background: #000;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+}
+
+.pitch p {
+  margin: 10px 0 0;
+  font-size: 14px;
+}
+
 .kv {
   display: grid;
   grid-template-columns: minmax(120px, max-content) 1fr;

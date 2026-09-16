@@ -1,4 +1,12 @@
-import { DOCS_URL, EXAMPLE_CONTRACT, RUNNER_REPO_URL, SPEC_REPO_URL } from '../constants'
+import {
+  DOCS_URL,
+  EXAMPLE_CONTRACT,
+  PITCH_POSTER_URL,
+  PITCH_VIDEO_ARCHIVE_URL,
+  PITCH_VIDEO_URL,
+  RUNNER_REPO_URL,
+  SPEC_REPO_URL,
+} from '../constants'
 import { shortenIdentifier } from '../lib/format'
 
 export function Overview() {
@@ -20,14 +28,38 @@ export function Overview() {
         <a href={SPEC_REPO_URL}>specification</a>&rsquo;s own schema, and reports anything the
         document says about itself that does not add up.
       </p>{' '}
-      <div className="callout">
-        <strong>Prefer to watch instead of read?</strong>{' '}
-        <a href="https://github.com/Estamora-Soroban-Layers/estamora-docs/releases/download/pitch-v1/estamora-pitch.mp4">
-          The five-minute product pitch
-        </a>{' '}
-        walks through the problem, a real free-mint bug from this project, the verdict contract and
-        this application. Every frame of it is a live deployment or real program output.
-      </div>
+      <section className="pitch">
+        <h2>Five minutes, or the text below</h2>
+        {/*
+         * `preload="metadata"` rather than `auto`: the file is 15 MB and most readers of this
+         * page came to read it, so the browser fetches enough to show the poster and the
+         * duration and no more. `playsInline` keeps iOS from taking the video full-screen and
+         * out of the page it is explaining.
+         */}
+        <video
+          controls
+          preload="metadata"
+          playsInline
+          poster={PITCH_POSTER_URL}
+          aria-label="The five-minute Estamora product pitch"
+        >
+          <source src={PITCH_VIDEO_URL} type="video/mp4" />
+          Your browser cannot play this video.{' '}
+          <a href={PITCH_VIDEO_ARCHIVE_URL}>Download it instead</a> (MP4, 15 MB).
+        </video>
+        <p className="muted">
+          The pitch walks through the problem, a real free-mint bug from this project, the verdict
+          contract and this application.{' '}
+          <strong>Every frame of it is a live deployment or real program output</strong> — the
+          release binary failing a fixture, the deployed sites, and the report the runner produced
+          over testnet RPC. There are no mock-ups in it. The pipeline that produced it is in the{' '}
+          <a href="https://github.com/Estamora-Soroban-Layers/estamora-docs/tree/main/video">
+            documentation repository
+          </a>
+          , and an <a href={PITCH_VIDEO_ARCHIVE_URL}>archived copy</a> is attached to the{' '}
+          <code>pitch-v1</code> release.
+        </p>
+      </section>
       <div className="callout callout-warn">
         <strong>
           This application cannot produce a verdict, and this is not a limitation to be fixed.
