@@ -34,7 +34,18 @@ and this application reads one of their reports.
 
 ## [Unreleased]
 
-Nothing yet.
+### Fixed
+
+- **The deploy gate no longer reports a slow edge as a broken deployment.** `vercel deploy --prod`
+  returning means the deployment is *published*, not that the production alias has *switched*: for
+  a few seconds the alias can serve the new shell while the entry chunk that shell names is not
+  reachable yet. A run of the job failed on exactly that — `assets/index-<hash>.js -> 404` — for a
+  deployment that was serving correctly seconds later. The step now retries, for up to three
+  minutes, and distinguishes a response that is not this application at all (no entry chunk,
+  which fails at once rather than being retried) from an edge that has not caught up. Every
+  assertion is unchanged; what changed is that a correct deployment is no longer reported as a
+  defective one. `estamora-docs` waits the same way, and did already — this repository did not,
+  which is the whole of the bug.
 
 ## [0.1.0] - 2026-09-16
 

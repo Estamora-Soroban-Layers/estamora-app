@@ -93,22 +93,63 @@ jobs:
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
 
       - name: The deployed application serves its routes
-        # Deployed is not the same as serving. The hash routes are client-side, so what is
-        # checked is that the shell is served and that the assets it references exist.
+        # Deployed is not the same as serving, and *published* is not the same as *switched*.
+        # The hash routes are client-side, so what is checked is that the shell is served and
+        # that the assets it references exist.
+        #
+        # This is also the step that waits for the alias, so that the checks below can rely on it
+        # having moved. `vercel deploy --prod` returning is not the edge having switched: for a
+        # few seconds the alias can answer with the new shell while the asset that shell names
+        # is not reachable yet. That is a published deployment mid-switch, not a broken one --
+        # a run of this job failed on `assets/index-<hash>.js -> 404` for a deployment that was
+        # serving correctly seconds later, which is how the wait below came to exist. The
+        # assertions are unchanged; what they gained is a bounded retry, so that a slow edge is
+        # not reported as a defect. `estamora-docs` waits the same way, for the same reason.
         run: |
           set -euo pipefail
           base="https://estamora-app.vercel.app"
+
+          # Both halves of the pair are read from one response on purpose: the shell names the
+          # entry chunk, and the chunk is then requested by that name. Asserting them in separate
+          # steps would let them describe two different deployments and still pass.
+          serves_consistently() {
+            local shell entry code
+            shell="$(curl -s -m 30 "$base/")" || return 1
+            entry="$(printf '%s\n' "$shell" | grep -oE 'assets/index-[A-Za-z0-9_-]+\.js' | head -1)"
+            # A shell with no entry chunk is not a switch in progress, it is a response that is
+            # not the application; retrying would only delay the report, so it fails immediately.
+            [ -n "$entry" ] || return 2
+            code="$(curl -s -o /dev/null -w '%{http_code}' -m 30 "$base/$entry")"
+            printf '  %s -> %s\n' "$entry" "$code"
+            [ "$code" = "200" ] || return 1
+          }
+
+          echo "the production alias, once the edge has switched to it:"
+          deadline=12
+          for attempt in $(seq 1 "$deadline"); do
+            status=0
+            serves_consistently || status=$?
+            if [ "$status" = "0" ]; then
+              echo "::notice::the production alias serves its shell and its entry chunk (attempt $attempt)"
+              break
+            fi
+            if [ "$status" = "2" ]; then
+              echo "::error::the served page references no entry chunk, which is not a switch in progress but a response that is not this application"
+              exit 1
+            fi
+            if [ "$attempt" = "$deadline" ]; then
+              echo "::error::the production alias did not serve its entry chunk within $deadline attempts; the deployment is published but the edge has not switched, or the artefact is incomplete"
+              exit 1
+            fi
+            echo "  not yet; waiting 15s"
+            sleep 15
+          done
+
           for path in "/" "/favicon.svg"; do
             code="$(curl -s -o /dev/null -w '%{http_code}' -m 30 "$base$path")"
             echo "$path -> $code"
             [ "$code" = "200" ] || { echo "::error::$path returned $code"; exit 1; }
           done
-
-          entry="$(curl -s -m 30 "$base/" | grep -oE 'assets/index-[A-Za-z0-9_-]+\.js' | head -1)"
-          [ -n "$entry" ] || { echo "::error::the served page references no entry chunk"; exit 1; }
-          code="$(curl -s -o /dev/null -w '%{http_code}' -m 30 "$base/$entry")"
-          echo "$entry -> $code"
-          [ "$code" = "200" ] || { echo "::error::the entry chunk $entry returned $code"; exit 1; }
 
       - name: Every cross-origin URL is readable from the deployed origin
         # This runs the check against the URLs in `src/constants.ts` rather than against a list

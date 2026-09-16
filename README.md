@@ -69,7 +69,9 @@ require.
 
 **Live contract.** A real read against a deployed testnet contract, performed by simulation. The
 result is deliberately modest — a symbol, a name and a decimals count — because that is all a read
-can establish.
+can establish. The capture states the ledger it read, and that ledger has advanced since: it is the
+one figure in these images that is a measurement rather than a rendering, and it is left as read
+rather than touched up.
 
 ![The Live contract view](docs/screenshots/app-live-contract.png)
 
@@ -151,16 +153,16 @@ CI job where its failure is unambiguous.
 Eight job-level checks. Each fails for a different reason, so a red build names the problem rather
 than pointing at one long job.
 
-| Job             | Enforces                                                                                                                                                                                                                   |
-| --------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `verify`        | Formatting, types, tests with the coverage floor, build — and that the **initial bundle stays under 400 kB** and is free of `stellar-sdk` and `ajv`, because code-splitting is a claim about the build output              |
-| `normative`     | The runner's committed report still validates against the specification's published schema, and still reports the 63/0/`INCONCLUSIVE` figures this application states                                                      |
-| `links`         | Every documentation URL this application sends a reader to resolves                                                                                                                                                        |
-| `claims`        | Nothing in shipped source signs or submits, mainnet is absent, and no credential is committed — the three claims the README makes, which are enforced by the _absence_ of code and so are the easiest to break by accident |
-| `licences`      | Every **runtime** dependency is under a licence this project can ship, read from the lockfile rather than from `node_modules`                                                                                              |
-| `hardening`     | Every workflow job declares a timeout and explicit permissions, and no workflow uses `pull_request_target`                                                                                                                 |
-| `readme`        | Every link in this README resolves — a different list from the one `links` checks, and the one that rots first                                                                                                             |
-| `deploy-vercel` | Publishes the artefact CI built, then asserts the shell, the entry chunk, **CORS from the deployed origin** to all three cross-origin sources, and that the pitch video streams as `video/mp4` with byte-range support     |
+| Job             | Enforces                                                                                                                                                                                                                                                  |
+| --------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `verify`        | Formatting, types, tests with the coverage floor, build — and that the **initial bundle stays under 400 kB** and is free of `stellar-sdk` and `ajv`, because code-splitting is a claim about the build output                                             |
+| `normative`     | The runner's committed report still validates against the specification's published schema, and still reports the 63/0/`INCONCLUSIVE` figures this application states                                                                                     |
+| `links`         | Every documentation URL this application sends a reader to resolves                                                                                                                                                                                       |
+| `claims`        | Nothing in shipped source signs or submits, mainnet is absent, and no credential is committed — the three claims the README makes, which are enforced by the _absence_ of code and so are the easiest to break by accident                                |
+| `licences`      | Every **runtime** dependency is under a licence this project can ship, read from the lockfile rather than from `node_modules`                                                                                                                             |
+| `hardening`     | Every workflow job declares a timeout and explicit permissions, and no workflow uses `pull_request_target`                                                                                                                                                |
+| `readme`        | Every link in this README resolves — a different list from the one `links` checks, and the one that rots first                                                                                                                                            |
+| `deploy-vercel` | Publishes the artefact CI built, waits for the edge to serve the new shell and its entry chunk, then asserts **CORS from the deployed origin** to all three cross-origin sources, and that the pitch video streams as `video/mp4` with byte-range support |
 
 The two static checks (`claims`, `hardening`) deliberately run without `npm ci`: they are searches,
 and a check that runs in a second on an empty runner is one that cannot fail for an unrelated
@@ -169,6 +171,17 @@ reason.
 The CORS check exists because those three fetches happen in a browser. A missing
 `access-control-allow-origin` would present as "the application is broken" with no useful clue;
 asserting it after every deploy turns that into a named failure.
+
+The deploy gate also **waits for the alias**, and that is a correction rather than a nicety.
+`vercel deploy --prod` returning means the deployment is _published_, not that the production alias
+has _switched_: for a few seconds the alias can serve the new shell while the entry chunk that shell
+names is not reachable yet. That is a deployment mid-switch, and the gate used to report it as a
+broken one — a run failed on `assets/index-<hash>.js -> 404` for a deployment that was serving
+correctly seconds later. The assertions are unchanged; the step now retries for up to three minutes
+and distinguishes a response that is not this application at all, which fails at once, from an edge
+that has not caught up. This is the same wait
+[`estamora-docs`](https://github.com/Estamora-Soroban-Layers/estamora-docs) already applies to its
+own deploy, for the same reason.
 
 ## Test coverage
 
