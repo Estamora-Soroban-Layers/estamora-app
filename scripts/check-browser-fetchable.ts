@@ -20,7 +20,13 @@
  *   npm run check:browser-fetchable
  */
 
-import { COMMITTED_REPORT_URL, REPORT_SCHEMA_URL, TESTNET_RPC_URL } from '../src/constants'
+import {
+  COMMITTED_REPORT_URL,
+  PITCH_POSTER_URL,
+  PITCH_VIDEO_URL,
+  REPORT_SCHEMA_URL,
+  TESTNET_RPC_URL,
+} from '../src/constants'
 
 /** The origin the deployed application is served from. */
 const ORIGIN = 'https://estamora-app.vercel.app'
@@ -98,6 +104,69 @@ async function checkRedirectChain(url: string): Promise<void> {
   failures.push({ url, hop: MAX_HOPS, problem: `more than ${MAX_HOPS} redirects` })
 }
 
+/**
+ * Assert that media this page embeds is *played* rather than downloaded.
+ *
+ * This is a third failure mode, distinct from both CORS and a 404, and it is the one that a
+ * release asset hits every time. `<video>` and `<img>` are exempt from CORS, so an embedded
+ * player appears correct: the request succeeds, the bytes arrive, nothing is blocked. What
+ * makes the browser offer a 15 MB download instead of playing the file is the *response*, not
+ * its reachability -- `content-type: application/octet-stream` with
+ * `content-disposition: attachment`. A GitHub release asset is served exactly that way.
+ *
+ * So the assertions here are the ones a media element depends on: a media content type, and
+ * byte-range support so that the player can start before the whole file has arrived and seek
+ * once it is there. The request asks for a byte range specifically so that this measures the
+ * property instead of inferring it.
+ */
+async function checkPlayableMedia(url: string, kind: 'video' | 'image'): Promise<void> {
+  const expectedPrefix = kind === 'video' ? 'video/' : 'image/'
+  const problems: string[] = []
+
+  let response: Response
+  try {
+    response = await fetch(url, {
+      headers: {
+        Origin: ORIGIN,
+        accept: '*/*',
+        ...(kind === 'video' ? { range: 'bytes=0-1023' } : {}),
+      },
+    })
+  } catch (problem) {
+    failures.push({
+      url,
+      hop: 1,
+      problem: `the request failed outright: ${problem instanceof Error ? problem.message : String(problem)}`,
+    })
+    return
+  }
+
+  if (!response.ok && response.status !== 206) {
+    failures.push({ url, hop: 1, problem: `status ${response.status}` })
+    return
+  }
+
+  const contentType = response.headers.get('content-type') ?? '<absent>'
+  if (!contentType.startsWith(expectedPrefix)) {
+    problems.push(
+      `content-type is "${contentType}", not ${expectedPrefix}*; a browser will download this instead of playing it`,
+    )
+  }
+
+  if (kind === 'video' && (response.headers.get('accept-ranges') ?? '') !== 'bytes') {
+    problems.push(
+      `accept-ranges is "${response.headers.get('accept-ranges') ?? '<absent>'}", not "bytes"; the player cannot seek`,
+    )
+  }
+
+  if (problems.length > 0) {
+    failures.push({ url, hop: 1, problem: problems.join('; ') })
+    return
+  }
+
+  console.log(`ok   ${url} (${kind}) — ${contentType}, status ${response.status}`)
+}
+
 /** The RPC endpoint is called with POST, so it is checked with POST. */
 async function checkRpc(url: string): Promise<void> {
   try {
@@ -135,6 +204,10 @@ async function main(): Promise<void> {
   await checkRedirectChain(REPORT_SCHEMA_URL)
   await checkRedirectChain(COMMITTED_REPORT_URL)
   await checkRpc(TESTNET_RPC_URL)
+  // The pitch is embedded on the landing page, so the reason it is checked here rather than
+  // left to a link checker is that a link checker would call an unplayable video "working".
+  await checkPlayableMedia(PITCH_VIDEO_URL, 'video')
+  await checkPlayableMedia(PITCH_POSTER_URL, 'image')
 
   if (failures.length > 0) {
     console.log('')
