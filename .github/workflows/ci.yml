@@ -87,7 +87,7 @@ jobs:
           echo "::notice::entry chunk is free of the SDK and the validator"
 
       - name: Upload the built bundle
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: dist
           path: dist
