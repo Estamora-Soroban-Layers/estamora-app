@@ -3,6 +3,7 @@
 **The Estamora web application: conformance evidence for a Soroban contract you did not write.**
 
 [![CI](https://github.com/Estamora-Soroban-Layers/estamora-app/actions/workflows/ci.yml/badge.svg)](https://github.com/Estamora-Soroban-Layers/estamora-app/actions/workflows/ci.yml)
+[![Specification](https://img.shields.io/badge/spec-estamora--spec-blue)](https://estamora-soroban-layers.github.io/estamora-conformance-spec/)
 [![Deployed on Vercel](https://img.shields.io/badge/vercel-estamora--app.vercel.app-black?logo=vercel)](https://estamora-app.vercel.app)
 [![Documentation](https://img.shields.io/badge/docs-estamora--docs.vercel.app-blue)](https://estamora-docs.vercel.app)
 [![Product pitch](https://img.shields.io/badge/watch-5--minute%20pitch-blueviolet)](https://estamora-docs.vercel.app/assets/estamora-pitch.mp4)
