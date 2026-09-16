@@ -1,0 +1,91 @@
+name: Feature request
+description: Propose a view, an audit rule or a change to what this application presents.
+title: 'enhancement: '
+labels:
+  - enhancement
+body:
+  - type: markdown
+    attributes:
+      value: |
+        This template is for changing what the application *presents* — a view, a reading of a
+        report, a way of explaining a result. The bar is deliberately narrow, because this
+        repository is deliberately narrow:
+
+        **A proposal has to be answerable from the report, the schema and RPC reads.** Anything
+        that would need this application to sign, submit, hold state or reach a conclusion of
+        its own is not a feature it can have — it is a feature of the runner, which owns
+        measurement, or of the specification, which owns requirements.
+
+        A proposal that adds a claim also adds a claim the repository must then keep true.
+        Several of this repository's checks exist only because a README stated something that
+        quietly stopped being the case, so say which check would keep a new claim honest, or
+        say plainly that none would and why that is acceptable.
+
+  - type: dropdown
+    id: area
+    attributes:
+      label: Area
+      options:
+        - A new way of presenting a report, or a new view over data already fetched
+        - A new audit rule: something a report can contradict and this application should notice
+        - A change to the documentation tables rendered from this application's constants
+        - The live contract read: another interface function, or another way of stating it
+        - Accessibility or usability of an existing view
+        - Something about how the repository is built, checked or released
+        - Something else
+    validations:
+      required: true
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: What a reader cannot find out today
+      description: >-
+        Describe the question this would answer, from the position of somebody reading a conformance
+        result. A concrete example — a report, and the thing you could not tell from it — is what
+        makes the proposal reviewable.
+    validations:
+      required: true
+
+  - type: textarea
+    id: available
+    attributes:
+      label: Where the information already exists, and why it is not enough
+      description: >-
+        Most of what this application shows is already in `report.json` or available over RPC. Say
+        which of those this would read, and why presenting it differently is worth a view rather
+        than a note in the documentation.
+    validations:
+      required: true
+
+  - type: textarea
+    id: shape
+    attributes:
+      label: Proposed shape
+      description: >-
+        The route, the view, what it shows, and what it does when the data it needs is absent. A
+        view that renders nothing rather than saying "not answered" is a view that looks like a
+        passing result.
+    validations:
+      required: true
+
+  - type: textarea
+    id: check
+    attributes:
+      label: Which check would keep this honest
+      description: >-
+        The test or CI job that would fail if this feature stopped being true. If the honest answer
+        is "none", say so — a feature that cannot be checked is still acceptable, but it should be
+        an explicit decision rather than an omission.
+    validations:
+      required: true
+
+  - type: checkboxes
+    id: constraints
+    attributes:
+      label: Constraints this respects
+      options:
+        - label: It does not require this application to sign, submit or hold state.
+          required: true
+        - label: It does not present a conformance result as a security guarantee.
+          required: true

@@ -1,0 +1,35 @@
+# Issue-template chooser configuration.
+#
+# Blank issues are disabled on purpose. Nearly every report about this application needs the
+# same two things -- which report it was reading, and what the application did with it -- and a
+# blank issue reliably omits both, which turns the first exchange into a request for information
+# the reporter already had.
+#
+# The contact links are routing, and they matter more here than in a repository that owns its
+# own subject matter. This application measures nothing and decides nothing: it displays
+# measurements that the runner made against requirements the specification defines. A report
+# filed in the wrong one of the three repositories is not a report anybody can act on.
+
+blank_issues_enabled: false
+
+contact_links:
+  - name: A contract that fails a profile
+    url: https://github.com/Estamora-Soroban-Layers/estamora-conformance-runner/issues
+    about: >-
+      This application displays conformance evidence; it does not produce it. A contract that fails
+      a profile is a result the runner reported, and the runner is where that result is
+      investigated.
+
+  - name: What a requirement means
+    url: https://github.com/Estamora-Soroban-Layers/estamora-conformance-spec/issues
+    about: >-
+      Profiles, schemas and test vectors belong to the specification. An ambiguous requirement is a
+      defect in a normative document, and this repository does not own one.
+
+  - name: The guides and reference
+    url: https://estamora-docs.vercel.app
+    about: >-
+      Installation, the exit-code and error-class reference, and the report format. Note that
+      several pages here render their tables from the same constants this application ships, so
+      where the two disagree that is a defect in this repository, not a documentation issue in that
+      one.

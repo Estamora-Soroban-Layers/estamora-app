@@ -1,0 +1,72 @@
+version: 2
+
+updates:
+  # The application is deployed, so a dependency bump is not routine: `@stellar/stellar-sdk`
+  # decides how a contract is read and how a report is fetched, and `ajv` decides what counts as
+  # a valid report. A bump that changes either can change what this application displays without
+  # a line of this repository changing. Dependabot opens the pull request so that the change is
+  # reviewed and the deployed result checked, rather than absorbed silently.
+  #
+  # The groups follow the boundaries that make a bump evaluable: packages that move together are
+  # proposed together, because a change split across pull requests is a change that cannot be
+  # assessed in any one of them.
+  - package-ecosystem: npm
+    directory: /
+    schedule:
+      interval: weekly
+      day: monday
+      time: '06:00'
+      timezone: UTC
+    open-pull-requests-limit: 5
+    versioning-strategy: increase
+    commit-message:
+      prefix: 'chore(deps)'
+      include: scope
+    labels:
+      - dependencies
+    groups:
+      # The schema validator and its format plugin are used together and are version-locked in
+      # practice: `ajv` alone cannot validate the formats the published schema uses.
+      schema-tooling:
+        patterns:
+          - ajv
+          - ajv-formats
+      # The read path. A major version here changes how a contract is read, which changes what
+      # the live contract view reports.
+      stellar-sdk:
+        patterns:
+          - '@stellar/stellar-sdk'
+      runtime:
+        patterns:
+          - react
+          - react-dom
+      test-tooling:
+        patterns:
+          - vitest
+          - '@vitest/*'
+          - '@testing-library/*'
+          - jsdom
+      build-tooling:
+        patterns:
+          - vite
+          - '@vitejs/plugin-react'
+          - typescript
+          - tsx
+      types:
+        patterns:
+          - '@types/*'
+
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+      day: monday
+      time: '06:00'
+      timezone: UTC
+    open-pull-requests-limit: 5
+    commit-message:
+      prefix: 'chore(ci)'
+      include: scope
+    labels:
+      - dependencies
+      - github-actions

@@ -1,0 +1,113 @@
+name: Bug report
+description: Report a defect in what the application displays, validates or claims about itself.
+title: 'bug: '
+labels:
+  - bug
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Before filing, please separate two things that look alike:
+
+        - **A report the application displays correctly and you disagree with.** The
+          application holds no opinion. If it renders a report faithfully and the report says
+          something wrong, the defect is in the runner that produced the report or in the
+          profile it was measured against — this repository did its job.
+        - **A report the application displays *wrongly*.** A status shown that the report does
+          not contain, a check counted twice, a figure restated somewhere other than where the
+          report states it, an audit that stayed silent about a report that contradicts itself.
+          That is a defect here.
+
+        The second is what this form is for. The most useful thing you can attach is the
+        report being read — `examples/testnet-contract/report.json` in the runner is the
+        default, but a report that exposes the bug is better.
+
+        This application reads contracts and reports through simulations. It contains no code
+        that signs or submits a transaction, and a bug report cannot change that: a change
+        requiring a submitted transaction is a design proposal, not a defect.
+
+  - type: dropdown
+    id: area
+    attributes:
+      label: Area
+      options:
+        - The audit accepts a report it should reject, or rejects one it should accept
+        - A figure is displayed that the report does not actually contain
+        - A status, exit code or error class is rendered inconsistently with the reference
+        - The live contract read reports something other than what the contract answers
+        - The schema is resolved from somewhere other than the `$id` it publishes
+        - A view is unusable, unreadable or inaccessible
+        - The bundle exceeds its budget, or code-splitting has regressed
+        - A claim this repository makes about itself is untrue
+        - A CI check fails for a reason unrelated to the change being checked
+        - Something else
+    validations:
+      required: true
+
+  - type: input
+    id: revision
+    attributes:
+      label: The revision you are reporting against
+      description: >-
+        The commit, or the deployment URL. The deployed application and this repository can differ —
+        the deployment is what CI built from a specific commit — so naming which one you saw
+        matters.
+      placeholder: '8ef0c1b, or estamora-app.vercel.app'
+    validations:
+      required: true
+
+  - type: input
+    id: where
+    attributes:
+      label: Where in the application
+      description: The view or route, and what you did to reach it.
+      placeholder: '#/report, after opening the default report'
+    validations:
+      required: true
+
+  - type: textarea
+    id: reported
+    attributes:
+      label: What the report says
+      description: >-
+        The relevant part of the report, quoted. If the defect is that a figure is displayed that
+        the report does not contain, say where you looked and did not find it.
+    validations:
+      required: true
+
+  - type: textarea
+    id: displayed
+    attributes:
+      label: What the application displays instead
+      description: What you saw, and why it does not follow from the report.
+    validations:
+      required: true
+
+  - type: textarea
+    id: checks
+    attributes:
+      label: What the checks say
+      description: >-
+        Run these and paste what they printed. `verify` is the one that matters most for a
+        report-handling defect, because it validates the committed report against the published
+        schema before the suite runs.
+      value: |
+        ```
+        npm ci
+        npm run format:check
+        npm run typecheck
+        npm test
+        npm run verify
+        ```
+    validations:
+      required: true
+
+  - type: checkboxes
+    id: not-security
+    attributes:
+      label: One thing this cannot be
+      options:
+        - label: >-
+            I am not reporting a security guarantee. A conformant contract can still be exploitable,
+            and nothing in this application presents a passing result as making a contract safe.
+          required: true
