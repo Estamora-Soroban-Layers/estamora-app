@@ -1,0 +1,62 @@
+# CodeRabbit review configuration.
+#
+# This application makes one narrow claim and is careful about it: it reads conformance
+# evidence and presents it, and it cannot produce a verdict or move funds. Most of the
+# instructions below exist to keep that claim true under review.
+language: en-US
+early_access: false
+reviews:
+  profile: assertive
+  request_changes_workflow: false
+  high_level_summary: true
+  poem: false
+  collapse_walkthrough: false
+  auto_review:
+    enabled: true
+    drafts: false
+  path_filters:
+    - '!node_modules/**'
+    - '!dist/**'
+    - '!coverage/**'
+    - '!playwright-report/**'
+    - '!test-results/**'
+  path_instructions:
+    - path: 'src/lib/rpc.ts'
+      instructions: >-
+        Reads go through simulation, which requires no signature and submits nothing. Flag anything
+        here that could sign, submit, or require a secret key. Note that integers decode as `bigint`
+        even for fields such as `decimals`, so narrowing with `Number` is deliberate and must not be
+        "simplified" away.
+    - path: 'src/lib/schema.ts'
+      instructions: >-
+        A report is validated against the published normative schema before it is displayed. Flag
+        any path that renders report fields without validating first.
+    - path: 'src/constants.ts'
+      instructions: >-
+        Every value here is a checked claim about another repository or network -- that a URL serves
+        a document, that a contract exists on testnet. A change to one is a change to what the site
+        asserts, so it needs evidence in the description, not just a new string.
+    - path: 'src/views/**'
+      instructions: >-
+        Where a value is unknown, indeterminate or unavailable, the interface must say so rather
+        than substituting zero or an empty string. Flag any fallback that renders a
+        measurable-looking value for something that was not actually measured.
+    - path: '**/*.{ts,tsx}'
+      instructions: >-
+        Strict TypeScript. Avoid `any` and non-null assertions; prefer narrowing with explicit
+        checks, as the existing views do.
+  tools:
+    gitleaks:
+      enabled: true
+    eslint:
+      enabled: true
+    markdownlint:
+      enabled: true
+    actionlint:
+      enabled: true
+    yamllint:
+      enabled: true
+    biome:
+      enabled: false
+chat:
+  auto_reply: true
