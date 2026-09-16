@@ -50,7 +50,10 @@ jobs:
         run: npm run typecheck
 
       - name: Unit tests
-        run: npm run test
+        # Runs the suite with coverage so the floor in vite.config.ts is enforced here:
+        # a module that loses its tests fails this check rather than lowering a number
+        # somebody has to notice.
+        run: npm run test:coverage
 
       - name: Build
         run: npm run build

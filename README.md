@@ -6,6 +6,7 @@
 [![Deployed on Vercel](https://img.shields.io/badge/vercel-estamora--app.vercel.app-black?logo=vercel)](https://estamora-app.vercel.app)
 [![Documentation](https://img.shields.io/badge/docs-estamora--docs.vercel.app-blue)](https://estamora-docs.vercel.app)
 [![Product pitch](https://img.shields.io/badge/watch-5--minute%20pitch-blueviolet)](https://estamora-docs.vercel.app/assets/estamora-pitch.mp4)
+[![Coverage](https://img.shields.io/badge/coverage-%E2%89%A5%2092%25%20enforced-brightgreen)](#test-coverage)
 [![License: Apache-2.0](https://img.shields.io/badge/license-Apache--2.0-blue.svg)](LICENSE)
 
 **Open it: <https://estamora-app.vercel.app>**
@@ -101,15 +102,16 @@ npm ci
 npm run dev          # http://localhost:5173
 ```
 
-| Script                  | Does                                           |
-| ----------------------- | ---------------------------------------------- |
-| `npm run dev`           | Development server                             |
-| `npm run build`         | Type-check and build to `dist/`                |
-| `npm run typecheck`     | `tsc --noEmit`                                 |
-| `npm run format:check`  | Prettier, checked not applied                  |
-| `npm test`              | Vitest, offline                                |
-| `npm run verify:report` | The cross-repository check (needs the network) |
-| `npm run ci`            | Everything CI runs, in CI order                |
+| Script                  | Does                                             |
+| ----------------------- | ------------------------------------------------ |
+| `npm run dev`           | Development server                               |
+| `npm run build`         | Type-check and build to `dist/`                  |
+| `npm run typecheck`     | `tsc --noEmit`                                   |
+| `npm run format:check`  | Prettier, checked not applied                    |
+| `npm test`              | Vitest, offline                                  |
+| `npm run test:coverage` | The same suite, with the coverage floor enforced |
+| `npm run verify:report` | The cross-repository check (needs the network)   |
+| `npm run ci`            | Everything CI runs, in CI order                  |
 
 No unit test reaches the network. Every one is a pure function of its input, so a red build always
 means the code changed. The single network-dependent check is `verify:report`, which runs as its own
@@ -127,6 +129,35 @@ CI job where its failure is unambiguous.
 The CORS check exists because those three fetches happen in a browser. A missing
 `access-control-allow-origin` would present as "the application is broken" with no useful clue;
 asserting it after every deploy turns that into a named failure.
+
+## Test coverage
+
+Measured with `npm run test:coverage`, over **every** file in `src/` rather than only the ones a
+test happens to import:
+
+| Metric     | Measured | Floor enforced in CI |
+| ---------- | -------- | -------------------- |
+| Statements | 96.9%    | 92%                  |
+| Lines      | 97.9%    | 93%                  |
+| Functions  | 94.7%    | 90%                  |
+| Branches   | 88.4%    | 82%                  |
+
+`src/lib/` — the report model, the audit, the schema loader and the RPC read path — is at 97.7%. The
+views are at 98.2%.
+
+The scope matters more than the figure. `coverage.include` is set to `src/**/*.{ts,tsx}`, because
+without it the provider counts only the modules a test loaded, and a suite that tests two files
+reports a high number over those two. That is not a hypothetical: before this was configured the
+same suite reported **97%** over the two files it happened to import and **34%** over the
+application.
+
+The floor is enforced by `vitest run --coverage` in CI, so a module that loses its tests fails the
+`verify` job rather than lowering a number somebody has to notice. It sits below the measured
+figures so ordinary refactoring does not fail the build.
+
+The RPC read path is additionally verified against the **deployed** application in a real browser,
+because it is the one part whose behaviour depends on the bundled Stellar SDK rather than on this
+repository's code alone.
 
 ## Architecture
 
