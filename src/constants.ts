@@ -25,8 +25,13 @@ export const ORG_URL = 'https://github.com/Estamora-Soroban-Layers'
  * The application displays this by default so that a reader arriving with no input sees a
  * real report. A demonstration that needed input before showing anything would be a
  * demonstration most readers never see.
+ *
+ * `raw.githubusercontent.com`, **not** `github.com/.../raw/...`. The latter redirects, and the
+ * redirect response carries an empty `access-control-allow-origin`, which a browser rejects
+ * while curl and Node follow it contentedly. That difference is why this is written with the
+ * host spelled out and asserted by `npm run check:browser-fetchable`.
  */
-export const COMMITTED_REPORT_URL = `${RUNNER_REPO_URL}/raw/main/examples/testnet-contract/report.json`
+export const COMMITTED_REPORT_URL = `https://raw.githubusercontent.com/Estamora-Soroban-Layers/estamora-conformance-runner/main/examples/testnet-contract/report.json`
 export const COMMITTED_REPORT_PAGE = `${RUNNER_REPO_URL}/blob/main/examples/testnet-contract/report.json`
 
 /** Soroban testnet RPC. Public, and it answers a browser origin with `access-control-allow-origin`. */

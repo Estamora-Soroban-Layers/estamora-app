@@ -115,6 +115,15 @@ jobs:
       - name: Verify the committed report
         run: npm run verify:report
 
+      # A different question from the one above, and the reason it is a separate step.
+      # That check proves the *document* is right; this one proves a *browser can read it*.
+      # The application once shipped a report URL that answered 302 with an empty
+      # `access-control-allow-origin`, which curl and Node both follow without complaint and
+      # every browser rejects. This reads the URLs out of `src/constants.ts` -- the values the
+      # application actually uses -- and fails if any hop of any fetch is unreadable.
+      - name: Every cross-origin URL is readable from a browser origin
+        run: npm run check:browser-fetchable
+
   links:
     name: Docs links still resolve
     runs-on: ubuntu-latest

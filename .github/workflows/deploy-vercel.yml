@@ -110,26 +110,17 @@ jobs:
           echo "$entry -> $code"
           [ "$code" = "200" ] || { echo "::error::the entry chunk $entry returned $code"; exit 1; }
 
-      - name: The cross-origin sources this app depends on answer the deployed origin
-        # The application fetches the normative schema from GitHub Pages, the report from
-        # raw.githubusercontent, and reads the contract from Soroban RPC — all from the
-        # browser. Each needs to send `access-control-allow-origin` for the deployed origin,
-        # and a missing header would present as "the app is broken" with no useful clue. So
-        # it is asserted after every deploy, from the origin that actually matters.
-        run: |
-          set -euo pipefail
-          origin="https://estamora-app.vercel.app"
-          check() {
-            local url="$1"
-            local header
-            header="$(curl -s -m 30 -H "Origin: $origin" -D - -o /dev/null "$url" \
-              | tr -d '\r' | grep -i '^access-control-allow-origin' || true)"
-            if [ -z "$header" ]; then
-              echo "::error::$url does not answer $origin with CORS; the browser cannot read it"
-              exit 1
-            fi
-            echo "$url -> $header"
-          }
-          check "https://estamora-soroban-layers.github.io/estamora-conformance-spec/schema/report.schema.json"
-          check "https://raw.githubusercontent.com/Estamora-Soroban-Layers/estamora-conformance-runner/main/examples/testnet-contract/report.json"
-          check "https://soroban-testnet.stellar.org"
+      - name: Every cross-origin URL is readable from the deployed origin
+        # This runs the check against the URLs in `src/constants.ts` rather than against a list
+        # written here, and that difference is the whole lesson of the bug it replaced:
+        #
+        # This step used to assert three hard-coded URLs, one of which was
+        # `raw.githubusercontent.com/...` — correct, and *not what the application used*. The
+        # application used `github.com/.../raw/...`, which answers 302 with an empty
+        # `access-control-allow-origin`; every browser blocked it, so the deployed application
+        # could not read its own default report while this step reported success. A check that
+        # names its own URLs cannot guard the constants the application fetches.
+        #
+        # `scripts/check-browser-fetchable.ts` reads the constants, follows the redirect chain
+        # by hand, and fails on the first hop a browser would reject.
+        run: npm run check:browser-fetchable

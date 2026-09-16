@@ -78,7 +78,17 @@ export function ReportViewer() {
       }
       setLoaded({ report: outcome.report, source: target, raw })
     } catch (problem) {
-      setFailure(problem instanceof Error ? problem.message : String(problem))
+      const message = problem instanceof Error ? problem.message : String(problem)
+      // A blocked cross-origin fetch is deliberately opaque: the browser refuses to tell the
+      // page why, so "Failed to fetch" is all JavaScript ever receives. Since the most likely
+      // cause by far is a header problem rather than a missing document, that is named rather
+      // than left for the reader to guess. It is stated as a likely cause, not a diagnosis.
+      const opaque = /failed to fetch|networkerror|load failed/i.test(message)
+      setFailure(
+        opaque
+          ? `${message} — the browser could not read it. The usual cause is a cross-origin response with no usable access-control-allow-origin header, including on a redirect: curl and Node follow that happily, a browser refuses the whole response.`
+          : message,
+      )
     } finally {
       setBusy(false)
     }
