@@ -1,0 +1,160 @@
+name: CI
+
+# Two jobs answering two different questions.
+#
+#   verify     -- is the code itself sound? format, types, tests, build. No network: every
+#                 unit test is a pure function of its input, so a red build here always means
+#                 the code changed.
+#   normative  -- do the three repositories still agree? The specification's published schema,
+#                 the runner's committed report, and this app's reading of both. This one does
+#                 reach the network, deliberately, because the property it checks *is* that a
+#                 document is served where it claims to be.
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+  schedule:
+    - cron: '41 6 * * 1'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  verify:
+    name: Format, types, tests, build
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Check out the repository
+        uses: actions/checkout@v7
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v7
+        with:
+          node-version: 24.x
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Check formatting
+        run: npm run format:check
+
+      - name: Type-check
+        run: npm run typecheck
+
+      - name: Unit tests
+        run: npm run test
+
+      - name: Build
+        run: npm run build
+
+      # The whole point of splitting the bundle was that somebody reading what a verdict means
+      # should not download a Stellar client to do it. That is a claim about the build output,
+      # so it is asserted against the build output rather than trusted.
+      - name: The initial bundle stays small enough to be a landing page
+        run: |
+          set -euo pipefail
+          entry="$(grep -oE 'assets/index-[A-Za-z0-9_-]+\.js' dist/index.html | head -1)"
+          [ -n "$entry" ] || { echo "::error::no entry chunk is referenced by index.html"; exit 1; }
+          bytes="$(stat -c%s "dist/$entry")"
+          printf 'entry chunk %s: %s bytes\n' "$entry" "$bytes"
+          # 400 kB uncompressed leaves room for the app while catching the SDK or the
+          # validator being pulled back into the initial load by an unlucky import.
+          if [ "$bytes" -gt 400000 ]; then
+            echo "::error::$entry is $bytes bytes; something heavy has been re-imported eagerly"
+            exit 1
+          fi
+
+      - name: The heavy views are not in the initial bundle
+        run: |
+          set -euo pipefail
+          for marker in 'stellar-sdk' 'ajv'; do
+            if grep -lq "$marker" dist/assets/index-*.js 2>/dev/null; then
+              echo "::error::$marker is referenced by the entry chunk; it should be split out"
+              exit 1
+            fi
+          done
+          echo "::notice::entry chunk is free of the SDK and the validator"
+
+      - name: Upload the built bundle
+        uses: actions/upload-artifact@v4
+        with:
+          name: dist
+          path: dist
+          retention-days: 7
+
+  normative:
+    name: The report satisfies the published schema
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Check out the repository
+        uses: actions/checkout@v7
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v7
+        with:
+          node-version: 24.x
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      # Fetches the normative schema and the document it references, fetches the runner's
+      # committed report, validates one against the other, and checks the report against the
+      # claims this application makes about it -- 63 checks, 0 failed, INCONCLUSIVE, exit 2.
+      # A re-measurement that moves those numbers fails here rather than leaving a page that
+      # states them quietly wrong.
+      - name: Verify the committed report
+        run: npm run verify:report
+
+  links:
+    name: Docs links still resolve
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Check out the repository
+        uses: actions/checkout@v7
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v7
+        with:
+          node-version: 24.x
+
+      # This application sends readers to the documentation site for anything it does not
+      # restate, so a dead documentation link is a broken application.
+      - name: Every documentation URL this app links to resolves
+        run: |
+          set -euo pipefail
+          base="https://estamora-docs.vercel.app"
+          failed=0
+          for path in \
+            "/getting-started/installation/" \
+            "/getting-started/first-measurement/" \
+            "/runner/cli/" \
+            "/runner/ci-integration/" \
+            "/runner/certification/" \
+            "/runner/architecture/" \
+            "/runner/testnet-testing/" \
+            "/runner/troubleshooting/" \
+            "/reference/exit-codes/" \
+            "/reference/error-classes/" \
+            "/reference/report-format/" \
+            "/spec/introduction/" \
+            "/spec/authorization-model/" \
+            "/spec/event-model/" \
+            "/spec/failure-model/" \
+            "/spec/profile-authoring/" \
+            "/spec/versioning/" ; do
+            code="$(curl -s -o /dev/null -w '%{http_code}' -m 30 "$base$path")"
+            printf '%-42s %s\n' "$path" "$code"
+            [ "$code" = "200" ] || failed=1
+          done
+          [ "$failed" -eq 0 ] || { echo "::error::at least one documentation URL this application links to is not being served"; exit 1; }

@@ -1,0 +1,29 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Estamora — conformance evidence for Soroban contracts</title>
+    <meta
+      name="description"
+      content="Read a conformance report produced by Estamora, checked against the published normative schema, and inspect a live Soroban testnet contract. It reads results; it cannot produce a verdict."
+    />
+    <meta name="color-scheme" content="light dark" />
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <meta property="og:title" content="Estamora — conformance evidence for Soroban contracts" />
+    <meta
+      property="og:description"
+      content="Read a conformance report, check it against the published schema, and inspect a live testnet contract."
+    />
+    <meta property="og:type" content="website" />
+  </head>
+  <body>
+    <div id="root"></div>
+    <noscript>
+      This application renders a conformance report in the browser, so it needs JavaScript. The
+      report it displays is a plain JSON document, and the runner that produced it is a command-line
+      tool — see https://estamora-docs.vercel.app for both.
+    </noscript>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>

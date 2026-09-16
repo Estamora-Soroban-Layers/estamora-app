@@ -1,0 +1,135 @@
+name: Deploy to Vercel
+
+# What is deployed is what CI built.
+#
+# Letting Vercel build this application would mean the published bundle comes from a second
+# build, with a Node version Vercel chose rather than the one `engines` and this workflow
+# pin. The bundle is the whole artefact here -- there is no server -- so a build nobody
+# validated is a build nobody checked.
+#
+# Vercel's own build step (`scripts/assert-built.sh`) therefore asserts the artefact exists
+# instead of producing it.
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: deploy-vercel
+  cancel-in-progress: true
+
+env:
+  # The project is identified from repository secrets rather than from a committed
+  # `.vercel/` directory, so nothing about the deployment lives in the repository.
+  VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+  VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+
+jobs:
+  deploy:
+    name: Build and publish
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    environment:
+      name: production
+      url: https://estamora-app.vercel.app
+    steps:
+      - name: Fail early when the deployment credentials are absent
+        # Otherwise the failure surfaces inside the Vercel CLI as an authentication error,
+        # which reads like a permissions problem rather than a missing setting.
+        run: |
+          set -euo pipefail
+          for name in VERCEL_TOKEN VERCEL_ORG_ID VERCEL_PROJECT_ID; do
+            if [ -z "${!name:-}" ]; then
+              echo "::error::$name is not set for this repository"
+              exit 1
+            fi
+          done
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+
+      - name: Check out the repository
+        uses: actions/checkout@v7
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v7
+        with:
+          node-version: 24.x
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Verify, then build
+        # The gate runs again here rather than trusting the CI run on the same commit. A
+        # deployment that can happen while a check is red is not a gate.
+        run: |
+          npm run format:check
+          npm run typecheck
+          npm run test
+          npm run build
+
+      - name: Retrieve the project settings
+        run: npx --yes vercel@latest pull --yes --environment=production --token="$VERCEL_TOKEN"
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+
+      - name: Package the artefact CI built
+        run: npx --yes vercel@latest build --prod --token="$VERCEL_TOKEN"
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+
+      - name: Publish it
+        id: deploy
+        run: |
+          set -euo pipefail
+          url="$(npx --yes vercel@latest deploy --prebuilt --prod --yes --token="$VERCEL_TOKEN" | tail -1)"
+          echo "url=$url" >> "$GITHUB_OUTPUT"
+          echo "::notice::Deployed $url"
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+
+      - name: The deployed application serves its routes
+        # Deployed is not the same as serving. The hash routes are client-side, so what is
+        # checked is that the shell is served and that the assets it references exist.
+        run: |
+          set -euo pipefail
+          base="https://estamora-app.vercel.app"
+          for path in "/" "/favicon.svg"; do
+            code="$(curl -s -o /dev/null -w '%{http_code}' -m 30 "$base$path")"
+            echo "$path -> $code"
+            [ "$code" = "200" ] || { echo "::error::$path returned $code"; exit 1; }
+          done
+
+          entry="$(curl -s -m 30 "$base/" | grep -oE 'assets/index-[A-Za-z0-9_-]+\.js' | head -1)"
+          [ -n "$entry" ] || { echo "::error::the served page references no entry chunk"; exit 1; }
+          code="$(curl -s -o /dev/null -w '%{http_code}' -m 30 "$base/$entry")"
+          echo "$entry -> $code"
+          [ "$code" = "200" ] || { echo "::error::the entry chunk $entry returned $code"; exit 1; }
+
+      - name: The cross-origin sources this app depends on answer the deployed origin
+        # The application fetches the normative schema from GitHub Pages, the report from
+        # raw.githubusercontent, and reads the contract from Soroban RPC — all from the
+        # browser. Each needs to send `access-control-allow-origin` for the deployed origin,
+        # and a missing header would present as "the app is broken" with no useful clue. So
+        # it is asserted after every deploy, from the origin that actually matters.
+        run: |
+          set -euo pipefail
+          origin="https://estamora-app.vercel.app"
+          check() {
+            local url="$1"
+            local header
+            header="$(curl -s -m 30 -H "Origin: $origin" -D - -o /dev/null "$url" \
+              | tr -d '\r' | grep -i '^access-control-allow-origin' || true)"
+            if [ -z "$header" ]; then
+              echo "::error::$url does not answer $origin with CORS; the browser cannot read it"
+              exit 1
+            fi
+            echo "$url -> $header"
+          }
+          check "https://estamora-soroban-layers.github.io/estamora-conformance-spec/schema/report.schema.json"
+          check "https://raw.githubusercontent.com/Estamora-Soroban-Layers/estamora-conformance-runner/main/examples/testnet-contract/report.json"
+          check "https://soroban-testnet.stellar.org"

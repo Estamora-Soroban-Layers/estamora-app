@@ -1,0 +1,61 @@
+/**
+ * Every external fact this application depends on, in one place.
+ *
+ * These are not configuration knobs. Each one is a *claim about another repository* --
+ * that a URL serves a document, that a contract exists on a network -- and a claim that
+ * has been checked. Keeping them together is what makes checking them again possible.
+ */
+
+/** Where the normative report schema is served. Its `$id` resolves here. */
+export const REPORT_SCHEMA_URL =
+  'https://estamora-soroban-layers.github.io/estamora-conformance-spec/schema/report.schema.json'
+
+/** The documentation site. */
+export const DOCS_URL = 'https://estamora-docs.vercel.app'
+
+export const RUNNER_REPO_URL =
+  'https://github.com/Estamora-Soroban-Layers/estamora-conformance-runner'
+export const SPEC_REPO_URL = 'https://github.com/Estamora-Soroban-Layers/estamora-conformance-spec'
+export const ORG_URL = 'https://github.com/Estamora-Soroban-Layers'
+
+/**
+ * The worked example: a measurement the runner actually made over RPC against a contract
+ * deployed to testnet, committed rather than described.
+ *
+ * The application displays this by default so that a reader arriving with no input sees a
+ * real report. A demonstration that needed input before showing anything would be a
+ * demonstration most readers never see.
+ */
+export const COMMITTED_REPORT_URL = `${RUNNER_REPO_URL}/raw/main/examples/testnet-contract/report.json`
+export const COMMITTED_REPORT_PAGE = `${RUNNER_REPO_URL}/blob/main/examples/testnet-contract/report.json`
+
+/** Soroban testnet RPC. Public, and it answers a browser origin with `access-control-allow-origin`. */
+export const TESTNET_RPC_URL = 'https://soroban-testnet.stellar.org'
+export const TESTNET_PASSPHRASE = 'Test SDF Network ; September 2015'
+
+/**
+ * An address used only as the *source* of a read-only simulation.
+ *
+ * Simulating a contract call requires a source account to build the transaction against;
+ * it does not require that account's secret, because nothing is signed and nothing is
+ * submitted. This is a real testnet account, so the simulation is built the same way the
+ * network would build it.
+ */
+export const SIMULATION_SOURCE = 'GBITS7JPWINS2T22IWQ5BZK42GZXWOFS4CTFNXML33IX75TOLCDXDA5G'
+
+/**
+ * The contract deployed for the worked example.
+ *
+ * Redeployed after the `burn`/`burn_from` free-mint fix; the superseded identifier is named
+ * in the example's README rather than quietly replaced, because it is the fix's own
+ * motivating example.
+ */
+export const EXAMPLE_CONTRACT = {
+  id: 'CDB3EKMUGN5E7X2LMO56IB3A55EU4PPUYEF5EBVDKDV3LCLICJNSYKLW',
+  network: 'testnet',
+  /** Verified against the deployment, not copied from documentation. */
+  reading: { symbol: 'MST', name: 'Measurable Token', decimals: 7 },
+}
+
+/** The runner repository, whose release the documentation describes. */
+export const RUNNER_VERSION = '0.1.3'

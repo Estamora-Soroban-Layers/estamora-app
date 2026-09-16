@@ -1,0 +1,13 @@
+# Dependencies
+node_modules/
+
+# Build output
+dist/
+coverage/
+*.tsbuildinfo
+
+# Vercel project link. Deliberately not committed: the CI workflow identifies the project
+# from repository secrets, so nothing about the deployment lives in the repository and
+# rotating the project is a settings change rather than a commit.
+.vercel
+.env*
