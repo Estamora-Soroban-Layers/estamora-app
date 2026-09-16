@@ -70,12 +70,13 @@ export const SIMULATION_SOURCE = 'GBITS7JPWINS2T22IWQ5BZK42GZXWOFS4CTFNXML33IX75
 /**
  * The contract deployed for the worked example.
  *
- * Redeployed after the `burn`/`burn_from` free-mint fix; the superseded identifier is named
- * in the example's README rather than quietly replaced, because it is the fix's own
+ * Redeployed twice: once after the `burn`/`burn_from` free-mint fix, and once when the fixture
+ * stopped building each storage key twice. Both superseded identifiers are named in the
+ * example's README rather than quietly replaced, because the first is that fix's own
  * motivating example.
  */
 export const EXAMPLE_CONTRACT = {
-  id: 'CDB3EKMUGN5E7X2LMO56IB3A55EU4PPUYEF5EBVDKDV3LCLICJNSYKLW',
+  id: 'CDMCJRW5QBTOOOGYDPCJV6N4RKLX44V6XWKNN6ZFAKN6J2F5HQPSNAOV',
   network: 'testnet',
   /** Verified against the deployment, not copied from documentation. */
   reading: { symbol: 'MST', name: 'Measurable Token', decimals: 7 },

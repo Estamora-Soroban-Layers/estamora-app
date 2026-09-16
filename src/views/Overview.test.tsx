@@ -82,10 +82,12 @@ describe('the worked example is the deployed contract, not a placeholder', () =>
   it('shortens the identifier for display without altering it', () => {
     render(<Overview />)
 
+    // Derived from the constant rather than written out, so a redeployment cannot leave this
+    // asserting the shape of an identifier the page no longer renders.
     const short = shortenIdentifier(EXAMPLE_CONTRACT.id)
     expect(short.length).toBeLessThan(EXAMPLE_CONTRACT.id.length)
-    expect(short.startsWith('CDB3EK')).toBe(true)
-    expect(short.endsWith('CJNSYKLW'.slice(-6))).toBe(true)
+    expect(short.startsWith(EXAMPLE_CONTRACT.id.slice(0, 6))).toBe(true)
+    expect(short.endsWith(EXAMPLE_CONTRACT.id.slice(-6))).toBe(true)
     expect(screen.getByText(short)).toBeDefined()
   })
 })
