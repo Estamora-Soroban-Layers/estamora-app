@@ -9,6 +9,7 @@
 [![Product pitch](https://img.shields.io/badge/watch-5--minute%20pitch-blueviolet)](https://estamora-docs.vercel.app/assets/estamora-pitch.mp4)
 [![Coverage](https://img.shields.io/badge/coverage-%E2%89%A5%2092%25%20enforced-brightgreen)](#test-coverage)
 [![License: Apache-2.0](https://img.shields.io/badge/license-Apache--2.0-blue.svg)](LICENSE)
+[![Contributors](https://img.shields.io/github/contributors/Estamora-Soroban-Layers/estamora-app)](https://github.com/Estamora-Soroban-Layers/estamora-app/graphs/contributors)
 
 **Open it: <https://estamora-app.vercel.app>**
 
