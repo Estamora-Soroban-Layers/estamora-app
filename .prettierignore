@@ -2,3 +2,14 @@ node_modules/
 dist/
 coverage/
 package-lock.json
+
+# The shared code of conduct is kept byte-identical to the other three repositories' copies, so
+# that all four state the same covenant and a change to it upstream appears here as a change
+# rather than as a rewrap. This repository's `proseWrap: always` would reflow every paragraph of
+# it -- which is harmless to the meaning and destructive to the property of being the same file.
+CODE_OF_CONDUCT.md
+
+# A changelog is a record of what shipped rather than prose. Prettier reformats its tables and
+# emphasis on every run, which rewrites the release notes of versions that are already published.
+# `estamora-conformance-spec` ignores its own changelog for the same reason.
+CHANGELOG.md
