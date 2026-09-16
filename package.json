@@ -22,7 +22,11 @@
     "test:watch": "vitest",
     "verify:report": "tsx scripts/verify-committed-report.ts",
     "check:browser-fetchable": "tsx scripts/check-browser-fetchable.ts",
-    "ci": "npm run format:check && npm run typecheck && npm run test:coverage && npm run build"
+    "ci": "npm run format:check && npm run typecheck && npm run test:coverage && npm run build",
+    "check:claims": "./scripts/check-claims.sh",
+    "check:licences": "tsx scripts/check-licences.ts",
+    "check:workflows": "tsx scripts/check-workflows.ts",
+    "check:readme-links": "tsx scripts/check-readme-links.ts"
   },
   "keywords": [
     "stellar",

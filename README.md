@@ -119,12 +119,23 @@ CI job where its failure is unambiguous.
 
 ## Checks
 
-| Job             | Enforces                                                                                                                                                                              |
-| --------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `verify`        | Formatting, types, tests, build — and that the **initial bundle stays under 400 kB** and is free of `stellar-sdk` and `ajv`, because code-splitting is a claim about the build output |
-| `normative`     | The runner's committed report still validates against the specification's published schema, and still reports the 63/0/`INCONCLUSIVE` figures this application states                 |
-| `links`         | Every documentation URL this application sends a reader to resolves                                                                                                                   |
-| `deploy-vercel` | Publishes the artefact CI built, then asserts the shell, the entry chunk, and **CORS from the deployed origin** to all three cross-origin sources                                     |
+Eight job-level checks. Each fails for a different reason, so a red build names the problem rather
+than pointing at one long job.
+
+| Job             | Enforces                                                                                                                                                                                                                   |
+| --------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `verify`        | Formatting, types, tests with the coverage floor, build — and that the **initial bundle stays under 400 kB** and is free of `stellar-sdk` and `ajv`, because code-splitting is a claim about the build output              |
+| `normative`     | The runner's committed report still validates against the specification's published schema, and still reports the 63/0/`INCONCLUSIVE` figures this application states                                                      |
+| `links`         | Every documentation URL this application sends a reader to resolves                                                                                                                                                        |
+| `claims`        | Nothing in shipped source signs or submits, mainnet is absent, and no credential is committed — the three claims the README makes, which are enforced by the _absence_ of code and so are the easiest to break by accident |
+| `licences`      | Every **runtime** dependency is under a licence this project can ship, read from the lockfile rather than from `node_modules`                                                                                              |
+| `hardening`     | Every workflow job declares a timeout and explicit permissions, and no workflow uses `pull_request_target`                                                                                                                 |
+| `readme`        | Every link in this README resolves — a different list from the one `links` checks, and the one that rots first                                                                                                             |
+| `deploy-vercel` | Publishes the artefact CI built, then asserts the shell, the entry chunk, **CORS from the deployed origin** to all three cross-origin sources, and that the pitch video streams as `video/mp4` with byte-range support     |
+
+The two static checks (`claims`, `hardening`) deliberately run without `npm ci`: they are searches,
+and a check that runs in a second on an empty runner is one that cannot fail for an unrelated
+reason.
 
 The CORS check exists because those three fetches happen in a browser. A missing
 `access-control-allow-origin` would present as "the application is broken" with no useful clue;

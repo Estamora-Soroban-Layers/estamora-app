@@ -170,3 +170,87 @@ jobs:
             [ "$code" = "200" ] || failed=1
           done
           [ "$failed" -eq 0 ] || { echo "::error::at least one documentation URL this application links to is not being served"; exit 1; }
+
+  # The four checks below assert properties of the repository rather than of the build. They are
+  # separate jobs rather than steps in `verify` because each fails for a different reason, and a
+  # failure should name which one: a leaked token, an unshippable licence, an over-privileged
+  # workflow, and a README link that moved are four unrelated problems.
+  claims:
+    name: Claims the repository makes about itself
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Check out the repository
+        uses: actions/checkout@v7
+
+      # No setup-node and no `npm ci`, deliberately: this check is a search, and a check that can
+      # run in a second on an empty runner is one that cannot fail for an unrelated reason. If it
+      # ever needs a dependency, that is a sign the check has grown past what it should be.
+      # "This application cannot produce a verdict and nothing here can change state" is on the
+      # landing page, in the footer of every route, and in the README. It is enforced by the
+      # absence of code, and an absence is what a review forgets to check.
+      - name: Nothing here signs or submits, mainnet is absent, no credential is committed
+        run: ./scripts/check-claims.sh
+
+  licences:
+    name: Dependency licences
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Check out the repository
+        uses: actions/checkout@v7
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v7
+        with:
+          node-version: 24.x
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      # The deployed artefact is public, so a copyleft runtime dependency would change what this
+      # project can be licensed under. Read from the lockfile, because that is what is reviewed.
+      - name: Every runtime dependency is under a licence this project can ship
+        run: npm run check:licences
+
+  hardening:
+    name: Workflow hardening
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Check out the repository
+        uses: actions/checkout@v7
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v7
+        with:
+          node-version: 24.x
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      # Every job declares a timeout and explicit permissions, and no workflow uses
+      # pull_request_target -- the one trigger that runs with the base token on a fork's code.
+      - name: Every workflow is least-privilege and bounded
+        run: npm run check:workflows
+
+  readme:
+    name: README links
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Check out the repository
+        uses: actions/checkout@v7
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v7
+        with:
+          node-version: 24.x
+          cache: npm
+
+      # The application's own link check covers the URLs the app sends a reader to. This covers
+      # the ones the README does, which is a different list and the one that rots first.
+      - name: Every link in the README resolves
+        run: npm run check:readme-links
