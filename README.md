@@ -5,9 +5,18 @@
 [![CI](https://github.com/Estamora-Soroban-Layers/estamora-app/actions/workflows/ci.yml/badge.svg)](https://github.com/Estamora-Soroban-Layers/estamora-app/actions/workflows/ci.yml)
 [![Deployed on Vercel](https://img.shields.io/badge/vercel-estamora--app.vercel.app-black?logo=vercel)](https://estamora-app.vercel.app)
 [![Documentation](https://img.shields.io/badge/docs-estamora--docs.vercel.app-blue)](https://estamora-docs.vercel.app)
+[![Product pitch](https://img.shields.io/badge/watch-5--minute%20pitch-blueviolet)](https://github.com/Estamora-Soroban-Layers/estamora-docs/releases/download/pitch-v1/estamora-pitch.mp4)
 [![License: Apache-2.0](https://img.shields.io/badge/license-Apache--2.0-blue.svg)](LICENSE)
 
 **Open it: <https://estamora-app.vercel.app>**
+
+<a href="https://github.com/Estamora-Soroban-Layers/estamora-docs/releases/download/pitch-v1/estamora-pitch.mp4">
+  <img src="https://raw.githubusercontent.com/Estamora-Soroban-Layers/estamora-docs/main/docs/assets/pitch-thumbnail.png" alt="Watch the five-minute Estamora product pitch" width="720">
+</a>
+
+**[Watch the five-minute pitch](https://github.com/Estamora-Soroban-Layers/estamora-docs/releases/download/pitch-v1/estamora-pitch.mp4)**
+— this application appears in it, and every frame of it was captured from the deployed sites and the
+release binary rather than mocked up.
 
 ## It reads results. It cannot produce a verdict.
 

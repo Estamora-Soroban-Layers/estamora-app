@@ -19,8 +19,15 @@ export function Overview() {
         <a href={RUNNER_REPO_URL}>runner</a> produced, checks that report against the{' '}
         <a href={SPEC_REPO_URL}>specification</a>&rsquo;s own schema, and reports anything the
         document says about itself that does not add up.
-      </p>
-
+      </p>{' '}
+      <div className="callout">
+        <strong>Prefer to watch instead of read?</strong>{' '}
+        <a href="https://github.com/Estamora-Soroban-Layers/estamora-docs/releases/download/pitch-v1/estamora-pitch.mp4">
+          The five-minute product pitch
+        </a>{' '}
+        walks through the problem, a real free-mint bug from this project, the verdict contract and
+        this application. Every frame of it is a live deployment or real program output.
+      </div>
       <div className="callout callout-warn">
         <strong>
           This application cannot produce a verdict, and this is not a limitation to be fixed.
@@ -30,7 +37,6 @@ export function Overview() {
         it. An interface read here is not evidence of behaviour, and a page that made it look like
         one would be worse than no page at all.
       </div>
-
       <h2>What each view does</h2>
       <div className="grid">
         <div className="card">
@@ -58,7 +64,6 @@ export function Overview() {
           </p>
         </div>
       </div>
-
       <h2>The worked example this is built around</h2>
       <p className="lede">
         A real measurement the runner made over RPC against a contract deployed to Soroban testnet,
@@ -67,7 +72,6 @@ export function Overview() {
         <strong>not</strong> conformant, because 19 of its 20 vectors need seeded state that a
         read-only measurement cannot arrange.
       </p>
-
       <div className="card">
         <dl className="kv">
           <dt>contract</dt>
@@ -89,7 +93,6 @@ export function Overview() {
           motivating example.
         </p>
       </div>
-
       <h2>Where the pieces live</h2>
       <table>
         <thead>
@@ -123,7 +126,6 @@ export function Overview() {
           </tr>
         </tbody>
       </table>
-
       <h2>Conformance is not security</h2>
       <p className="lede">
         Passing a profile means a contract behaved as that profile defines. Profiles are written by
