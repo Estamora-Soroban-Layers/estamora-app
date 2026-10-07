@@ -1,0 +1,6 @@
+# Code owners for estamora-app
+
+*                                              @winningtalker-commits
+/src/                                          @winningtalker-commits
+/package.json                                  @winningtalker-commits
+/SECURITY.md                                   @winningtalker-commits
