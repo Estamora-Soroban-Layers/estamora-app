@@ -1,9 +1,8 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import {
   ShieldCheck,
   Wallet,
   ArrowRight,
-  Clock,
   CheckCircle2,
   AlertTriangle,
   RotateCcw,
