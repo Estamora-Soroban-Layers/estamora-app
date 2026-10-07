@@ -44,9 +44,11 @@
   },
   "homepage": "https://estamora-app.vercel.app",
   "dependencies": {
+    "@stellar/freighter-api": "^6.0.1",
     "@stellar/stellar-sdk": "17.1.0",
     "ajv": "8.20.0",
     "ajv-formats": "3.0.1",
+    "lucide-react": "^1.52.0",
     "react": "19.3.0",
     "react-dom": "19.3.0"
   },
