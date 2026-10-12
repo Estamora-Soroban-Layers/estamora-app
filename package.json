@@ -33,7 +33,7 @@
   "homepage": "https://estamora-app.vercel.app",
   "dependencies": {
     "@stellar/freighter-api": "^6.0.0",
-    "@stellar/stellar-sdk": "^13.0.0",
+    "@stellar/stellar-sdk": "^17.2.1",
     "clsx": "^2.1.1",
     "lucide-react": "^0.460.0",
     "react": "^19.0.0",
